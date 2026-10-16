@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QuantoCustaRemodelar</title>
+<meta name="description" content="Simule grátis o custo de remodelar a sua casa, apartamento, escritório ou loja em Portugal e receba até 3 orçamentos de profissionais.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: hero cobalto tipo "planta de arquiteto" sobre azulejo; simulador em 2 colunas com cartão de resultado escuro fixo; secções alternadas cal/superfície. */
+:root{
+  --bg:#f5f4f1; --surface:#ffffff; --surface-2:#eeece7; --ink:#1c1e21; --muted:#5f6166; --line:#dedbd3;
+  --escuro:#2b2f34; --escuro-2:#17191c; --escuro-ink:#ffffff; --realce-soft:#f8ecd2; --realce:#8a5a00;
+  --ocre:#eaa21a; --ocre-2:#f6c45a; --ocre-soft:#fcefd2; --ocre-ink:#5e3f00;
+  --ok:#1f7a4d; --ok-soft:#e1f3e9; --err:#b3261e;
+  --tile:rgba(255,255,255,.07);
+  --shadow:0 1px 2px rgba(23,25,28,.06), 0 12px 32px -12px rgba(23,25,28,.22);
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px; --wrap:1200px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121315; --surface:#1b1d20; --surface-2:#24272b; --ink:#ecebe7; --muted:#a5a6a8; --line:#33363b;
+  --escuro:#2b2f34; --escuro-2:#0f1012; --escuro-ink:#ffffff; --realce-soft:#3a2d12; --realce:#f0b13a;
+  --ocre:#f0b13a; --ocre-2:#f6c96a; --ocre-soft:#3a2d12; --ocre-ink:#f7d999;
+  --ok:#62d29a; --ok-soft:#14321f; --err:#ff8a80; --tile:rgba(255,255,255,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 16px 36px -14px rgba(0,0,0,.6); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121315; --surface:#1b1d20; --surface-2:#24272b; --ink:#ecebe7; --muted:#a5a6a8; --line:#33363b;
+  --escuro:#2b2f34; --escuro-2:#0f1012; --escuro-ink:#ffffff; --realce-soft:#3a2d12; --realce:#f0b13a;
+  --ocre:#f0b13a; --ocre-2:#f6c96a; --ocre-soft:#3a2d12; --ocre-ink:#f7d999;
+  --ok:#62d29a; --ok-soft:#14321f; --err:#ff8a80; --tile:rgba(255,255,255,.06);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 16px 36px -14px rgba(0,0,0,.6); color-scheme:dark;}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--f-display);line-height:1.08;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--realce)}
+:focus-visible{outline:3px solid var(--ocre);outline-offset:2px}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--realce)}
+
+/* Padrão de azulejo (máscara SVG, cor via token) */
+.azulejo-bg{position:absolute;inset:0;pointer-events:none;background:var(--tile);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23000' stroke-width='2'%3E%3Ccircle cx='40' cy='40' r='14'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%23000'/%3E%3Cpath d='M40 4c8 10 8 16 0 22c-8-6-8-12 0-22zM40 76c8-10 8-16 0-22c-8 6-8 12 0 22zM4 40c10-8 16-8 22 0c-6 8-12 8-22 0zM76 40c-10-8-16-8-22 0c6 8 12 8 22 0z'/%3E%3Cpath d='M0 14A14 14 0 0 0 14 0M66 0a14 14 0 0 0 14 14M80 66a14 14 0 0 0-14 14M14 80A14 14 0 0 0 0 66'/%3E%3C/g%3E%3C/svg%3E") 0 0/80px 80px;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23000' stroke-width='2'%3E%3Ccircle cx='40' cy='40' r='14'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%23000'/%3E%3Cpath d='M40 4c8 10 8 16 0 22c-8-6-8-12 0-22zM40 76c8-10 8-16 0-22c-8 6-8 12 0 22zM4 40c10-8 16-8 22 0c-6 8-12 8-22 0zM76 40c-10-8-16-8-22 0c6 8 12 8 22 0z'/%3E%3Cpath d='M0 14A14 14 0 0 0 14 0M66 0a14 14 0 0 0 14 14M80 66a14 14 0 0 0-14 14M14 80A14 14 0 0 0 0 66'/%3E%3C/g%3E%3C/svg%3E") 0 0/80px 80px}
+
+/* Cabeçalho */
+.top{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;background:color-mix(in srgb, var(--escuro-2) 92%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--escuro-ink)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.2rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px;letter-spacing:-.01em}
+.logo b{color:var(--ocre-2)}
+.logo svg{flex:none}
+.nav{display:flex;gap:22px;align-items:center;font-weight:600;font-size:.93rem}
+.nav a{color:rgba(255,255,255,.78);text-decoration:none}
+.nav a:hover{color:#fff}
+.nav .cta{background:var(--ocre);color:#241800;padding:8px 14px;border-radius:999px;white-space:nowrap}
+.nav .cta:hover{color:#241800;background:var(--ocre-2)}
+@media (max-width:760px){.nav a:not(.cta){display:none}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:linear-gradient(160deg, var(--escuro) 0%, var(--escuro-2) 100%);color:var(--escuro-ink)}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center;padding-block:64px 88px}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr;padding-block:44px 72px}}
+.hero .eyebrow{color:var(--ocre-2)}
+.hero h1{font-size:clamp(2.5rem, 6vw, 4.6rem);font-weight:800;letter-spacing:-.03em;margin-top:14px}
+.hero h1 .hl{position:relative;white-space:nowrap;color:var(--ocre-2)}
+.hero h1 .hl svg{position:absolute;left:0;right:0;bottom:-.12em;width:100%;height:.28em}
+.hero .lead{font-size:1.17rem;color:rgba(255,255,255,.82);max-width:54ch;margin-top:18px}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:700;border:0;border-radius:999px;padding:14px 22px;cursor:pointer;background:var(--ocre);color:#241800;text-decoration:none;font-size:1rem;transition:transform .15s ease, background .15s ease}
+.btn:hover{background:var(--ocre-2);transform:translateY(-1px)}
+.btn.line{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)}
+.btn.line:hover{background:rgba(255,255,255,.08)}
+.hero-stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:36px;padding-top:22px;border-top:1px solid rgba(255,255,255,.16)}
+.hero-stats div{display:grid}
+.hero-stats strong{font-family:var(--f-display);font-size:1.7rem;font-weight:800}
+.hero-stats span{font-size:.85rem;color:rgba(255,255,255,.7)}
+
+.planta{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:18px 18px 12px;backdrop-filter:blur(2px)}
+.planta svg{display:block;width:100%;height:auto}
+.planta .cap{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:.72rem;color:rgba(255,255,255,.6);margin-top:8px;letter-spacing:.04em}
+.planta-tag{position:absolute;right:-10px;bottom:28px;background:var(--surface);color:var(--ink);border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);display:grid;gap:2px;min-width:180px}
+.planta-tag small{color:var(--muted);font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.planta-tag strong{font-family:var(--f-display);font-size:1.35rem}
+@media (max-width:900px){.planta-tag{right:12px;bottom:-18px}}
+@media (prefers-reduced-motion: no-preference){
+  .planta .draw{stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 2.2s .2s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+}
+.wave{display:block;width:100%;height:40px;margin-top:-39px;position:relative}
+
+/* Simulador */
+.sim{padding-block:20px 72px}
+.sim-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.sim-head h2{font-size:clamp(1.7rem,3.2vw,2.3rem);font-weight:800;letter-spacing:-.02em}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:960px){.sim-grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.form{padding:8px 26px}
+@media (max-width:520px){.form{padding:4px 16px}}
+.step{display:grid;grid-template-columns:40px minmax(0,1fr);gap:4px 16px;padding-block:24px;border-top:1px solid var(--line)}
+.step:first-child{border-top:0}
+.step .n{grid-row:1/span 2;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-family:var(--f-mono);font-weight:700;background:var(--realce-soft);color:var(--realce)}
+.step h3{font-size:1.2rem;align-self:center}
+.step .body{grid-column:2;display:grid;gap:14px;margin-top:8px;min-width:0}
+@media (max-width:520px){.step{grid-template-columns:1fr}.step .n{grid-row:auto;width:32px;height:32px;font-size:.85rem}.step .body{grid-column:1}}
+.hint{color:var(--muted);font-size:.86rem}
+
+.types{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:620px){.types{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.levels{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.levels{grid-template-columns:1fr}}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.choice label{display:grid;gap:6px;justify-items:start;border:1.5px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;background:var(--surface);height:100%;transition:border-color .15s, background .15s, transform .15s}
+.choice label:hover{border-color:var(--realce)}
+.choice label svg{color:var(--realce)}
+.choice label strong{font-weight:700}
+.choice label small{color:var(--muted);font-size:.8rem;line-height:1.3}
+.choice input:checked + label{border-color:var(--escuro);background:var(--realce-soft);box-shadow:inset 0 0 0 1px var(--escuro)}
+.choice input:focus-visible + label{outline:3px solid var(--ocre);outline-offset:2px}
+.dots{display:flex;gap:3px}
+.dots i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.dots i.on{background:var(--ocre)}
+
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.field{display:grid;gap:6px;min-width:0}
+.field > label{font-weight:600;font-size:.88rem}
+input[type=number],input[type=text],input[type=email],input[type=tel],select{
+  width:100%;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,select:focus{border-color:var(--escuro);outline:none;box-shadow:0 0 0 3px var(--realce-soft)}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.stepper button{font:inherit;font-size:1.1rem;font-weight:700;width:38px;height:42px;border:0;background:var(--surface-2);color:var(--ink);cursor:pointer;flex:none}
+.stepper button:hover{background:var(--realce-soft)}
+.stepper input{border:0;border-radius:0;text-align:center;min-width:0;-moz-appearance:textfield;font-family:var(--f-mono);font-weight:700}
+.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+.stepper:focus-within{border-color:var(--escuro)}
+.area-box{display:grid;gap:10px;background:var(--surface-2);border-radius:12px;padding:14px 16px}
+.area-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.area-top label{font-weight:600;font-size:.88rem}
+.area-top output{font-family:var(--f-display);font-weight:800;font-size:1.6rem}
+.area-top output small{font-size:.9rem;color:var(--muted);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--escuro)}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.84rem;font-weight:600;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--escuro)}
+.chip.on{background:var(--escuro);border-color:var(--escuro);color:#fff}
+.works{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.work{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:start;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer;transition:border-color .15s, background .15s}
+.work:hover{border-color:var(--realce)}
+.work input{accent-color:var(--escuro);width:18px;height:18px;margin:2px 0 0;grid-row:1/span 2}
+.work strong{font-size:.95rem;line-height:1.3}
+.work small{color:var(--muted);font-size:.78rem;line-height:1.3;display:flex;justify-content:space-between;gap:8px}
+.work small .num{color:var(--realce);font-size:.74rem;white-space:nowrap}
+.work:has(input:checked){border-color:var(--escuro);background:var(--realce-soft)}
+.toggles{display:grid;gap:10px}
+.toggle{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.toggle span{display:grid;line-height:1.35}
+.toggle small{color:var(--muted);font-size:.8rem}
+.toggle input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .15s;margin:0}
+.toggle input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.toggle input:checked{background:var(--escuro)}
+.toggle input:checked::after{transform:translateX(18px)}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface-2);border-radius:12px;padding:4px;gap:4px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{text-align:center;padding:9px 6px;border-radius:9px;cursor:pointer;font-weight:600;font-size:.88rem;line-height:1.25}
+.seg label small{display:block;font-weight:500;font-size:.72rem;color:var(--muted)}
+.seg input:checked + label{background:var(--surface);box-shadow:var(--shadow)}
+.seg input:focus-visible + label{outline:3px solid var(--ocre)}
+
+/* Resultado */
+.result{position:sticky;top:calc(env(safe-area-inset-top, 0px) + 78px);display:grid;gap:16px}
+@media (max-width:960px){.result{position:static}}
+.estimate{position:relative;overflow:hidden;background:linear-gradient(155deg, var(--escuro) 0%, var(--escuro-2) 100%);color:#fff;border-radius:var(--r);padding:24px;display:grid;gap:14px;box-shadow:var(--shadow)}
+.estimate > *{position:relative}
+.estimate .lbl{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ocre-2)}
+.estimate .big{font-family:var(--f-display);font-weight:800;font-size:clamp(1.9rem,3.6vw,2.6rem);line-height:1.02;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.estimate .big .sep{color:rgba(255,255,255,.5);font-weight:500;margin-inline:.15em}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.kpi small{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.65)}
+.kpi strong{font-family:var(--f-mono);font-size:.98rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stack{display:flex;height:12px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.1);gap:2px}
+.stack i{display:block;height:100%}
+@media (prefers-reduced-motion: no-preference){.stack i{transition:flex-grow .4s ease}}
+
+.detail{padding:22px;display:grid;gap:14px}
+.detail-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.detail-head h3{font-size:1.05rem}
+.legend{display:grid;gap:8px}
+.leg{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto;gap:10px;align-items:center;font-size:.9rem}
+.leg .sw{width:12px;height:12px;border-radius:3px}
+.leg .pct{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);min-width:34px;text-align:right}
+.leg .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.85rem;min-width:78px;text-align:right}
+.leg.extra span:nth-child(2){color:var(--muted)}
+.totals{display:grid;gap:5px;border-top:1px dashed var(--line);padding-top:12px;font-size:.92rem}
+.totals div{display:flex;justify-content:space-between;gap:10px}
+.totals .grand{font-weight:700;font-size:1.02rem;padding-top:4px}
+.compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.compare button{font:inherit;text-align:left;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px;cursor:pointer;display:grid;gap:2px;min-width:0}
+.compare button small{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.compare button strong{font-family:var(--f-mono);font-size:.86rem;font-variant-numeric:tabular-nums}
+.compare button.on{border-color:var(--escuro);background:var(--realce-soft)}
+.empty{color:var(--muted);font-size:.92rem;padding:8px 0}
+
+.lead-panel{padding:22px;display:grid;gap:12px;background:linear-gradient(180deg, var(--ocre-soft), var(--surface) 70%)}
+.lead-panel h3{font-size:1.2rem}
+.lead-form{display:grid;gap:10px}
+.lead-form .btn{width:100%;border-radius:12px}
+.consent{display:flex;gap:8px;font-size:.8rem;color:var(--muted);align-items:flex-start}
+.consent input{accent-color:var(--escuro);margin-top:3px;flex:none}
+.err{color:var(--err);font-size:.85rem}
+.done{background:var(--ok-soft);border:1px solid var(--ok);border-radius:12px;padding:16px;display:grid;gap:6px}
+.done strong{color:var(--ok);font-family:var(--f-display);font-size:1.1rem}
+.note{font-size:.78rem;color:var(--muted)}
+.pros-list{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
+.pros-list span::before{content:"✓ ";color:var(--ok);font-weight:700}
+
+/* Secções */
+section.block{padding-block:80px}
+section.alt{background:var(--surface);border-block:1px solid var(--line)}
+section.block h2{font-size:clamp(1.9rem,3.8vw,2.8rem);font-weight:800;letter-spacing:-.02em}
+.head{display:grid;gap:12px;margin-bottom:36px;max-width:64ch}
+.head p{color:var(--muted);font-size:1.05rem}
+
+.steps3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:0;margin:0;list-style:none;counter-reset:s}
+@media (max-width:820px){.steps3{grid-template-columns:1fr}}
+.steps3 li{counter-increment:s;position:relative;display:grid;gap:10px;padding:26px;border-radius:var(--r);background:var(--bg);border:1px solid var(--line)}
+.steps3 li::before{content:"0" counter(s);font-family:var(--f-display);font-weight:800;font-size:2.6rem;line-height:1;color:var(--ocre)}
+.steps3 h3{font-size:1.25rem}
+.steps3 p{color:var(--muted)}
+
+.examples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+@media (max-width:900px){.examples{grid-template-columns:1fr}}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:grid;box-shadow:var(--shadow)}
+.ex-top{position:relative;overflow:hidden;background:linear-gradient(155deg, var(--escuro), var(--escuro-2));color:#fff;padding:20px;display:grid;gap:4px}
+.ex-top > *{position:relative}
+.ex-top small{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ocre-2);font-weight:700}
+.ex-top strong{font-family:var(--f-display);font-size:1.25rem}
+.ex-body{padding:18px 20px 20px;display:grid;gap:12px}
+.ex-price{font-family:var(--f-display);font-weight:800;font-size:1.6rem;letter-spacing:-.01em}
+.ex-price small{display:block;font-family:var(--f-body);font-weight:500;font-size:.82rem;color:var(--muted);letter-spacing:0}
+.ex ul{margin:0;padding:0;list-style:none;display:grid;gap:5px;font-size:.88rem}
+.ex li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--line);padding-bottom:5px}
+.ex li .num{font-size:.82rem}
+.ex button{font:inherit;font-weight:700;color:var(--realce);background:none;border:0;padding:0;cursor:pointer;justify-self:start}
+.ex button:hover{text-decoration:underline}
+.disclaimer{margin-top:16px;font-size:.82rem;color:var(--muted)}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:.93rem}
+th,td{padding:13px 18px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);font-weight:700}
+td.r,th.r{text-align:right}
+td.r.mid{color:var(--realce);font-weight:700}
+tbody tr:hover{background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td small{display:block;color:var(--muted);font-size:.78rem}
+
+.pros{position:relative;overflow:hidden;background:linear-gradient(160deg, var(--escuro-2), #0b0c0e);color:#fff}
+.pros .head p{color:rgba(255,255,255,.75)}
+.pros .eyebrow{color:var(--ocre-2)}
+.pros .wrap{position:relative}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+@media (max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{border-radius:18px;padding:28px;display:grid;gap:16px;align-content:start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+.plan.feat{background:var(--surface);color:var(--ink);border-color:var(--surface);box-shadow:0 24px 60px -20px rgba(0,0,0,.6)}
+.plan .tag{justify-self:start;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--ocre);color:#241800;border-radius:999px;padding:4px 10px}
+.plan h3{font-size:1.3rem}
+.plan .price{font-family:var(--f-display);font-weight:800;font-size:2.4rem;letter-spacing:-.02em;line-height:1}
+.plan .price small{font-family:var(--f-body);font-size:.85rem;font-weight:500;opacity:.7;letter-spacing:0}
+.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:.93rem}
+.plan li{display:flex;gap:8px}
+.plan li::before{content:"✓";color:var(--ocre-2);font-weight:700}
+.plan.feat li::before{color:var(--ok)}
+.plan:not(.feat) ul{color:rgba(255,255,255,.82)}
+.plan .btn{margin-top:4px}
+.plan:not(.feat) .btn{background:transparent;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)}
+.plan:not(.feat) .btn:hover{background:rgba(255,255,255,.08)}
+.pro-facts{display:flex;gap:32px;flex-wrap:wrap;margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.14)}
+.pro-facts div{display:grid;max-width:240px}
+.pro-facts strong{font-family:var(--f-display);font-size:1.15rem}
+.pro-facts span{font-size:.88rem;color:rgba(255,255,255,.7)}
+
+.faq-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:40px;align-items:start}
+@media (max-width:860px){.faq-grid{grid-template-columns:1fr}}
+.faq{display:grid;gap:10px}
+.faq details{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 18px}
+.faq summary{font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px;padding-block:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--f-mono);color:var(--realce);font-size:1.2rem;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq details p{color:var(--muted);padding-bottom:16px}
+
+.final{position:relative;overflow:hidden;background:var(--ocre);color:#241800}
+.final .wrap{position:relative;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding-block:56px}
+.final h2{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:800;letter-spacing:-.02em;max-width:22ch}
+.final .btn{background:#17191c;color:#fff}
+.final .btn:hover{background:#2b2f34}
+.final .azulejo-bg{background:rgba(0,0,0,.06)}
+
+/* Fotografia de obra como fundo do simulador, com painéis translúcidos por cima */
+.sim{position:relative;padding-block:120px 80px;background:linear-gradient(180deg, color-mix(in srgb, var(--escuro-2) 50%, transparent) 0, color-mix(in srgb, var(--escuro-2) 12%, transparent) 260px, color-mix(in srgb, var(--escuro-2) 18%, transparent) 100%)}
+.sim .sim-head h2{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.sim .sim-head .eyebrow{color:var(--ocre-2)}
+.sim .sim-head .hint{color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.sim{scroll-margin-top:60px}
+.sim .chip.on{background:var(--escuro);color:#fff}
+.sim .panel{background:color-mix(in srgb, var(--surface) 70%, transparent);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border-color:color-mix(in srgb, var(--line) 70%, transparent)}
+.sim .choice label,.sim .work,.sim .toggle,.sim .stepper,.sim input[type=number],.sim input[type=text],.sim input[type=email],.sim input[type=tel],.sim select,.sim .chip:not(.on),.sim .compare button:not(.on){background:color-mix(in srgb, var(--surface) 62%, transparent)}
+.sim .area-box,.sim .seg{background:color-mix(in srgb, var(--surface-2) 75%, transparent)}
+.sim .estimate{background:linear-gradient(155deg, color-mix(in srgb, var(--escuro) 88%, transparent), color-mix(in srgb, var(--escuro-2) 92%, transparent));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.sim .lead-panel{background:linear-gradient(180deg, color-mix(in srgb, var(--ocre-soft) 88%, transparent), color-mix(in srgb, var(--surface) 84%, transparent) 70%)}
+
+/* Fotografia de obra fixa como fundo de todo o site; as secções ficam translúcidas por cima */
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:url("assets/obra-fundo.jpg") 68% center/cover no-repeat}
+.hero{background:linear-gradient(160deg, color-mix(in srgb, var(--escuro) 80%, transparent) 0%, color-mix(in srgb, var(--escuro-2) 88%, transparent) 100%)}
+section.block:not(.alt):not(.pros){background:color-mix(in srgb, var(--bg) 86%, transparent)}
+section.alt{background:color-mix(in srgb, var(--surface) 88%, transparent)}
+.pros{background:linear-gradient(160deg, color-mix(in srgb, var(--escuro-2) 88%, transparent), color-mix(in srgb, #0b0c0e 92%, transparent))}
+.final{background:color-mix(in srgb, var(--ocre) 92%, transparent)}
+
+footer{background:#101113;color:rgba(255,255,255,.7);font-size:.88rem}
+footer .wrap{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:28px;padding-block:48px 28px}
+@media (max-width:760px){footer .wrap{grid-template-columns:1fr 1fr}}
+footer h4{margin:0 0 10px;color:#fff;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+footer a{color:rgba(255,255,255,.7);text-decoration:none}
+footer a:hover{color:#fff}
+footer .legal{grid-column:1/-1;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.8rem}
+footer .about p{max-width:36ch;margin-top:10px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#topo">
+      <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><path d="M7 31L32 10l25 21" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 27v27h36V27" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/><path d="M41.5 35.2a8 8 0 1 0 0 11.6" fill="none" stroke="#f6c45a" stroke-width="4.5" stroke-linecap="round"/><path d="M26 39h11M26 43.5h11" stroke="#f6c45a" stroke-width="3.5" stroke-linecap="round"/></svg>
+      <span>QuantoCusta<b>Remodelar</b></span>
+    </a>
+    <nav class="nav" aria-label="Principal">
+      <a href="#como">Como funciona</a>
+      <a href="#precos">Preços</a>
+      <a href="#profissionais">Sou profissional</a>
+      <a href="#faq">Perguntas</a>
+      <a class="cta" href="#simulador">Simular grátis</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="topo">
+  <div class="azulejo-bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Simulador de obras · Portugal 2026</span>
+      <h1>Quanto custa <span class="hl">remodelar<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9c40-6 120-8 196-3" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span> a sua casa?</h1>
+      <p class="lead">Apartamento, moradia, escritório ou loja. Diga-nos a área e as obras que tem em mente e veja em 2 minutos quanto vai gastar, divisão a divisão, com IVA incluído.</p>
+      <div class="hero-ctas">
+        <a class="btn" href="#simulador">Começar simulação
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn line" href="#exemplos">Ver exemplos de obras</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>12</strong><span>tipos de obra</span></div>
+        <div><strong>8</strong><span>regiões com preços próprios</span></div>
+        <div><strong>0 €</strong><span>sem registo, sem compromisso</span></div>
+      </div>
+    </div>
+
+    <div class="planta" aria-label="Planta de um T2 com 80 m² usada como exemplo">
+      <svg viewBox="0 0 360 250" role="img" aria-hidden="true">
+        <g fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1">
+          <path d="M20 10v220M190 10v220M340 10v220" stroke-dasharray="2 4"/>
+        </g>
+        <g fill="rgba(234,162,26,.22)">
+          <rect x="22" y="22" width="166" height="96"/>
+          <rect x="192" y="132" width="66" height="86"/>
+        </g>
+        <g class="draw" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="miter">
+          <path d="M20 20h320v200H20z"/>
+        </g>
+        <g class="draw" fill="none" stroke="#fff" stroke-width="3">
+          <path d="M190 20v80M190 140v80M20 120h70M120 120h70M190 130h40M260 130h80M260 160v60"/>
+        </g>
+        <g fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5">
+          <path d="M90 120a30 30 0 0 1 30-30" stroke-dasharray="3 3"/><path d="M90 120v-30"/>
+          <path d="M190 100a40 40 0 0 1 40 40" stroke-dasharray="3 3"/><path d="M190 100h0"/>
+          <path d="M230 130a30 30 0 0 0 30 30" stroke-dasharray="3 3"/>
+          <path d="M60 20h70M240 20h60M20 160v40M340 50v50" stroke="#f6c45a" stroke-width="4"/>
+        </g>
+        <g fill="#fff" font-family="Figtree, system-ui, sans-serif" font-size="11" font-weight="700">
+          <text x="105" y="66" text-anchor="middle">COZINHA</text>
+          <text x="105" y="176" text-anchor="middle">SALA</text>
+          <text x="265" y="78" text-anchor="middle">QUARTO</text>
+          <text x="225" y="180" text-anchor="middle">WC</text>
+          <text x="300" y="180" text-anchor="middle">QUARTO</text>
+        </g>
+        <g fill="rgba(255,255,255,.65)" font-family="JetBrains Mono, monospace" font-size="9">
+          <text x="105" y="80" text-anchor="middle">16 m²</text>
+          <text x="105" y="190" text-anchor="middle">17 m²</text>
+          <text x="265" y="92" text-anchor="middle">16 m²</text>
+          <text x="225" y="194" text-anchor="middle">6 m²</text>
+          <text x="300" y="194" text-anchor="middle">9 m²</text>
+        </g>
+        <g stroke="rgba(255,255,255,.6)" stroke-width="1" fill="none"><path d="M20 238h320M20 234v8M340 234v8"/></g>
+        <text x="180" y="248" fill="rgba(255,255,255,.75)" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">9,60 m</text>
+      </svg>
+      <div class="cap"><span>PLANTA · T2 · 80 m²</span><span>ESC. 1:100</span></div>
+      <div class="planta-tag"><small>Cozinha + WC, médio</small><strong id="heroTag">—</strong></div>
+    </div>
+  </div>
+</section>
+
+<section class="sim" id="simulador">
+  <div class="wrap">
+    <div class="sim-head">
+      <div><span class="eyebrow">Simulador</span><h2>Monte a sua obra</h2></div>
+      <span class="hint">O resultado atualiza sozinho a cada alteração.</span>
+    </div>
+    <div class="sim-grid">
+      <form class="panel form" id="simForm" autocomplete="off">
+        <div class="step">
+          <span class="n">1</span><h3>Que espaço vai remodelar?</h3>
+          <div class="body"><div class="types" id="tipoChoices"></div></div>
+        </div>
+
+        <div class="step">
+          <span class="n">2</span><h3>Dimensão e localização</h3>
+          <div class="body">
+            <div class="area-box">
+              <div class="area-top"><label for="areaRange">Área útil</label><output id="areaOut" for="areaRange">90 <small>m²</small></output></div>
+              <input type="range" id="areaRange" min="20" max="400" step="5" value="90">
+              <div class="scale"><span>20 m²</span><span>100</span><span>200</span><span>300</span><span>400 m²</span></div>
+            </div>
+            <div class="fields">
+              <div class="field"><label for="divisoes" id="divLabel">Quartos e salas</label><div class="stepper"><button type="button" data-step="divisoes:-1" aria-label="Menos">−</button><input type="number" id="divisoes" min="1" max="30" value="3"><button type="button" data-step="divisoes:1" aria-label="Mais">+</button></div></div>
+              <div class="field"><label for="wcs">Casas de banho</label><div class="stepper"><button type="button" data-step="wcs:-1" aria-label="Menos">−</button><input type="number" id="wcs" min="0" max="10" value="1"><button type="button" data-step="wcs:1" aria-label="Mais">+</button></div></div>
+              <div class="field"><label for="cozinhas" id="cozLabel">Cozinhas</label><div class="stepper"><button type="button" data-step="cozinhas:-1" aria-label="Menos">−</button><input type="number" id="cozinhas" min="0" max="5" value="1"><button type="button" data-step="cozinhas:1" aria-label="Mais">+</button></div></div>
+              <div class="field"><label for="janelas">Janelas</label><div class="stepper"><button type="button" data-step="janelas:-1" aria-label="Menos">−</button><input type="number" id="janelas" min="0" max="80" value="8"><button type="button" data-step="janelas:1" aria-label="Mais">+</button></div></div>
+            </div>
+            <div class="fields">
+              <div class="field"><label for="regiao">Região</label><select id="regiao"></select></div>
+              <div class="field"><label for="idade">Idade do edifício</label>
+                <select id="idade">
+                  <option value="1">Menos de 20 anos</option>
+                  <option value="1.08" selected>20 a 50 anos</option>
+                  <option value="1.18">Mais de 50 anos</option>
+                </select></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <span class="n">3</span><h3>Que obras quer fazer?</h3>
+          <div class="body">
+            <div class="presets" role="group" aria-label="Seleção rápida">
+              <button type="button" class="chip" data-preset="total">Remodelação total</button>
+              <button type="button" class="chip" data-preset="cozinha">Só cozinha</button>
+              <button type="button" class="chip" data-preset="wc">Só casa de banho</button>
+              <button type="button" class="chip" data-preset="refresh">Pintura e chão</button>
+              <button type="button" class="chip" data-preset="energia">Eficiência energética</button>
+            </div>
+            <div class="works" id="works"></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <span class="n">4</span><h3>Nível de acabamentos</h3>
+          <div class="body"><div class="levels" id="nivelChoices"></div></div>
+        </div>
+
+        <div class="step">
+          <span class="n">5</span><h3>Extras e impostos</h3>
+          <div class="body">
+            <div class="toggles">
+              <label class="toggle"><span><strong>Projeto e licenciamento</strong><small>+6% · necessário se mexer na estrutura ou fachada</small></span><input type="checkbox" id="projeto"></label>
+              <label class="toggle"><span><strong>Gestão e fiscalização de obra</strong><small>+5% · alguém acompanha a obra por si</small></span><input type="checkbox" id="gestao"></label>
+              <label class="toggle"><span><strong>Margem para imprevistos</strong><small>+10% · recomendado, sobretudo em prédios antigos</small></span><input type="checkbox" id="imprevistos" checked></label>
+            </div>
+            <div class="field">
+              <span style="font-weight:600;font-size:.88rem">Taxa de IVA</span>
+              <div class="seg" role="radiogroup" aria-label="Taxa de IVA">
+                <input type="radio" name="iva" id="iva23" value="0.23" checked><label for="iva23">23%<small>taxa normal</small></label>
+                <input type="radio" name="iva" id="iva6" value="0.06"><label for="iva6">6%<small>reabilitação / ARU</small></label>
+                <input type="radio" name="iva" id="iva0" value="0"><label for="iva0">Sem IVA<small>empresas</small></label>
+              </div>
+              <span class="hint">A taxa de 6% depende de condições legais. Confirme com o empreiteiro ou o contabilista.</span>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <aside class="result" aria-live="polite">
+        <div class="estimate">
+          <div class="azulejo-bg" aria-hidden="true"></div>
+          <span class="lbl">Estimativa da sua obra</span>
+          <span class="big" id="rangeOut">—</span>
+          <div class="stack" id="stack" aria-hidden="true"></div>
+          <div class="kpis">
+            <div class="kpi"><small>Por m²</small><strong id="m2Out">—</strong></div>
+            <div class="kpi"><small>Duração</small><strong id="prazoOut">—</strong></div>
+            <div class="kpi"><small>Valor médio</small><strong id="medOut">—</strong></div>
+          </div>
+        </div>
+
+        <div class="panel detail">
+          <div class="detail-head"><h3>Para onde vai o dinheiro</h3><span class="hint" id="nItems"></span></div>
+          <div class="legend" id="breakdown"></div>
+          <div class="totals" id="totals"></div>
+          <div>
+            <span class="hint" style="display:block;margin-bottom:8px">Comparar acabamentos</span>
+            <div class="compare" id="compare"></div>
+          </div>
+        </div>
+
+        <div class="panel lead-panel" id="leadPanel">
+          <h3>Receba até 3 orçamentos reais</h3>
+          <p class="hint">Enviamos a sua simulação a empresas verificadas da sua zona. Grátis e sem compromisso.</p>
+          <form class="lead-form" id="leadForm" novalidate>
+            <div class="fields">
+              <div class="field"><label for="nome">Nome</label><input type="text" id="nome" autocomplete="name"></div>
+              <div class="field"><label for="cp">Código postal</label><input type="text" id="cp" placeholder="1000-001" inputmode="numeric"></div>
+              <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="email"></div>
+              <div class="field"><label for="tel">Telemóvel</label><input type="tel" id="tel" placeholder="912 345 678" autocomplete="tel"></div>
+            </div>
+            <div class="field"><label for="quando">Quando quer começar?</label>
+              <select id="quando"><option>Nos próximos 3 meses</option><option>Entre 3 e 6 meses</option><option>Daqui a mais de 6 meses</option><option>Ainda estou a avaliar</option></select></div>
+            <label class="consent"><input type="checkbox" id="rgpd"><span>Aceito que os meus dados e a simulação sejam partilhados com até 3 profissionais para me enviarem orçamento, nos termos da Política de Privacidade.</span></label>
+            <p class="err" id="leadErr" hidden></p>
+            <button class="btn" type="submit">Pedir orçamentos grátis</button>
+            <div class="pros-list"><span>Empresas verificadas</span><span>Máximo 3 contactos</span><span>Dados protegidos (RGPD)</span></div>
+          </form>
+          <div class="done" id="leadDone" hidden>
+            <strong>Pedido registado</strong>
+            <span id="leadDoneTxt"></span>
+            <span class="note">Versão de demonstração: o envio para profissionais fica ativo quando o formulário for ligado ao servidor.</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="block alt" id="como">
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Como funciona</span><h2>Da ideia ao orçamento em três passos</h2></div>
+    <ol class="steps3">
+      <li><h3>Simule</h3><p>Indique o imóvel e as obras. O simulador aplica preços médios por m² e por unidade, ajustados à região e à idade do edifício.</p></li>
+      <li><h3>Ajuste</h3><p>Veja quanto pesa cada trabalho, compare acabamentos e tire o que não é prioritário até chegar ao seu orçamento.</p></li>
+      <li><h3>Receba propostas</h3><p>Se quiser avançar, até 3 empresas verificadas da sua zona contactam-no com um orçamento detalhado.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="block" id="exemplos">
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Exemplos de obras</span><h2>Quanto custam as remodelações mais procuradas</h2><p>Três cenários típicos calculados com o simulador. Abra qualquer um para o ajustar ao seu caso.</p></div>
+    <div class="examples" id="examples"></div>
+    <p class="disclaimer">Simulações de exemplo com IVA a 23% e 10% de margem para imprevistos. Não são orçamentos de obras reais.</p>
+  </div>
+</section>
+
+<section class="block alt" id="precos">
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Preços de referência 2026</span><h2>Quanto custa cada trabalho</h2><p>Valores médios em Portugal continental, sem IVA, com mão de obra e materiais. Em Lisboa e no Algarve os preços tendem a ser 10% a 15% mais altos.</p></div>
+    <div class="table-wrap"><table id="priceTable"><thead><tr><th>Trabalho</th><th>Unidade</th><th class="r">Económico</th><th class="r">Médio</th><th class="r">Premium</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<section class="block pros" id="profissionais">
+  <div class="azulejo-bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="head"><span class="eyebrow">Para empreiteiros e profissionais</span><h2>Receba clientes que já sabem quanto querem gastar</h2><p>Cada pedido chega com a simulação completa: área, obras, acabamentos, região e prazo. Fala com o cliente já com expectativas alinhadas.</p></div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Perfil grátis</h3>
+        <div class="price">0 €<small> / mês</small></div>
+        <ul><li>Página de empresa no diretório</li><li>Fotografias de obras e avaliações</li><li>1 pedido de orçamento por mês</li></ul>
+        <a class="btn" href="#profissionais">Criar perfil</a>
+      </div>
+      <div class="plan feat">
+        <span class="tag">Mais escolhido</span>
+        <h3>Profissional</h3>
+        <div class="price">49 €<small> / mês + IVA</small></div>
+        <ul><li>Até 15 pedidos por mês no seu distrito</li><li>Destaque nos resultados da sua zona</li><li>Selo de empresa verificada</li><li>Alertas por SMS e email</li></ul>
+        <a class="btn" href="#profissionais">Experimentar 30 dias</a>
+      </div>
+      <div class="plan">
+        <h3>Por pedido</h3>
+        <div class="price">12–25 €<small> / contacto</small></div>
+        <ul><li>Sem mensalidade</li><li>Escolhe os pedidos que quer comprar</li><li>Preço conforme o valor da obra</li><li>Cada pedido vendido a no máximo 3 empresas</li></ul>
+        <a class="btn" href="#profissionais">Ver pedidos na minha zona</a>
+      </div>
+    </div>
+    <div class="pro-facts">
+      <div><strong>Pedidos qualificados</strong><span>Área, orçamento e prazo antes do primeiro contacto.</span></div>
+      <div><strong>Na sua zona</strong><span>Escolhe os concelhos onde trabalha.</span></div>
+      <div><strong>Sem fidelização</strong><span>Cancela o plano quando quiser.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="faq">
+  <div class="wrap faq-grid">
+    <div class="head" style="margin:0"><span class="eyebrow">Perguntas frequentes</span><h2>Antes de começar a obra</h2><p>O que os particulares mais nos perguntam sobre custos, licenças e impostos.</p></div>
+    <div class="faq">
+      <details open><summary>Quão fiável é a estimativa?</summary><p>É uma ordem de grandeza baseada em preços médios de mercado. O valor real depende do estado do imóvel, dos materiais escolhidos e da disponibilidade das empresas. Por isso mostramos um intervalo e não um número fechado.</p></details>
+      <details><summary>Quanto custa remodelar um T2 de 80 m²?</summary><p>Uma remodelação total com acabamentos médios fica normalmente entre 50 000 € e 70 000 € com IVA a 23%, dependendo da região. Só pintura e pavimento rondam os 7 000 € a 9 000 €.</p></details>
+      <details><summary>Preciso de licença para remodelar?</summary><p>Obras interiores sem alterações à estrutura, fachada ou cércea estão normalmente isentas de licença. Se mexer em paredes estruturais, fachadas ou no uso do espaço, precisa de projeto e de comunicação prévia ou licença na Câmara Municipal.</p></details>
+      <details><summary>Quando se aplica o IVA a 6%?</summary><p>Aplica-se, por exemplo, a empreitadas de reabilitação em Áreas de Reabilitação Urbana (ARU) e à mão de obra em obras de beneficiação de habitações, quando os materiais não ultrapassam 20% do valor total. As regras têm detalhes; confirme com o empreiteiro.</p></details>
+      <details><summary>O pedido de orçamentos tem custo?</summary><p>Não. O serviço é gratuito para particulares. São as empresas que pagam para receber pedidos, e cada pedido é enviado a no máximo 3 empresas.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="azulejo-bg" aria-hidden="true"></div>
+  <div class="wrap">
+    <h2>Saiba quanto vai gastar antes de pedir o primeiro orçamento.</h2>
+    <a class="btn" href="#simulador">Simular a minha obra</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="about"><a class="logo" href="#topo"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><path d="M7 31L32 10l25 21" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 27v27h36V27" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/><path d="M41.5 35.2a8 8 0 1 0 0 11.6" fill="none" stroke="#f6c45a" stroke-width="4.5" stroke-linecap="round"/><path d="M26 39h11M26 43.5h11" stroke="#f6c45a" stroke-width="3.5" stroke-linecap="round"/></svg><span>QuantoCusta<b>Remodelar</b></span></a><p>Simulador gratuito de custos de remodelação e obras em Portugal.</p></div>
+    <div><h4>Simulador</h4><ul><li><a href="#simulador">Remodelação total</a></li><li><a href="#simulador">Cozinha</a></li><li><a href="#simulador">Casa de banho</a></li><li><a href="#precos">Preços por m²</a></li></ul></div>
+    <div><h4>Profissionais</h4><ul><li><a href="#profissionais">Planos</a></li><li><a href="#profissionais">Criar perfil</a></li><li><a href="#profissionais">Pedidos na zona</a></li></ul></div>
+    <div><h4>Empresa</h4><ul><li><a href="#faq">Perguntas</a></li><li><a href="#topo">Política de Privacidade</a></li><li><a href="#topo">Termos de utilização</a></li><li><a href="#topo">Livro de Reclamações</a></li></ul></div>
+    <div class="legal"><span>© 2026 QuantoCustaRemodelar</span><span>Os valores apresentados são estimativas e não constituem orçamento.</span></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const eur = n => new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+  const round = (n, s=500) => Math.round(n/s)*s;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const ICONS = {
+    apartamento:'<path d="M6 21V3h12v18M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M3 21h18"/>',
+    moradia:'<path d="M3 11l9-7 9 7M5 9.5V21h14V9.5M10 21v-6h4v6"/>',
+    escritorio:'<path d="M3 8h18v12H3zM8 8V5h8v3M3 13h18M11 13v2h2v-2"/>',
+    loja:'<path d="M3 9l2-5h14l2 5M4 9v12h16V9M3 9h18M9 21v-6h6v6"/>'
+  };
+  const icon = k => `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]}</svg>`;
+
+  const TIPOS = [
+    {id:'apartamento', label:'Apartamento', sub:'T0 a T5', mult:1.00, div:'Quartos e salas', coz:'Cozinhas'},
+    {id:'moradia', label:'Moradia', sub:'Isolada ou geminada', mult:1.06, div:'Quartos e salas', coz:'Cozinhas'},
+    {id:'escritorio', label:'Escritório', sub:'Open space ou salas', mult:0.95, div:'Salas e gabinetes', coz:'Copas'},
+    {id:'loja', label:'Loja', sub:'Comércio ou restauração', mult:1.02, div:'Zonas', coz:'Copas'}
+  ];
+  const NIVEIS = [
+    {i:0, label:'Económico', sub:'Materiais de gama base, bom para arrendar'},
+    {i:1, label:'Médio', sub:'Boa relação qualidade-preço'},
+    {i:2, label:'Premium', sub:'Marcas e acabamentos de topo'}
+  ];
+  const REGIOES = [
+    ['Lisboa e Vale do Tejo',1.15],['Grande Porto',1.08],['Algarve',1.10],['Norte (restante)',0.93],
+    ['Centro',0.95],['Alentejo',0.93],['Madeira',1.12],['Açores',1.12]
+  ];
+  const COLORS = ['#f6c45a','#c9c4b8','#ffffff','#6fd3b0','#f59e8b','#c7a6ff','#ffd98a','#e8875f','#e0e6f2','#9be3c7','#ffb59e','#d6b98c'];
+  // q: quantidade; p: preço [económico, médio, premium] sem IVA; w: semanas
+  const WORKS = [
+    {id:'demolicao', label:'Demolições e entulho', sub:'Remoção de revestimentos', unit:'m²', p:[12,15,18], q:s=>s.area, w:s=>1},
+    {id:'pavimentos', label:'Pavimentos', sub:'Flutuante, vinílico, cerâmico', unit:'m²', p:[25,45,90], q:s=>s.area, w:s=>s.area/60},
+    {id:'pintura', label:'Pintura', sub:'Paredes e tetos', unit:'m²', p:[10,15,24], q:s=>s.area, w:s=>s.area/90, note:'por m² de área útil'},
+    {id:'pladur', label:'Tetos falsos e pladur', sub:'Com iluminação embutida', unit:'m²', p:[18,28,42], q:s=>s.area*0.6, w:s=>s.area/80},
+    {id:'eletricidade', label:'Instalação elétrica', sub:'Rede nova e quadro', unit:'m²', p:[35,50,75], q:s=>s.area, w:s=>s.area/70},
+    {id:'canalizacao', label:'Canalização', sub:'Água e esgotos', unit:'m²', p:[22,35,55], q:s=>s.area, w:s=>s.area/90},
+    {id:'cozinha', label:'Cozinha', sub:'Móveis, bancada, eletrodomésticos', unit:'un.', p:[6000,12000,25000], q:s=>s.coz, w:s=>2*s.coz},
+    {id:'wc', label:'Casas de banho', sub:'Louças, duche, revestimento', unit:'un.', p:[4000,7500,15000], q:s=>s.wcs, w:s=>1.5*s.wcs},
+    {id:'janelas', label:'Janelas e caixilharia', sub:'Alumínio com corte térmico', unit:'janela', p:[450,750,1300], q:s=>s.janelas, w:s=>1},
+    {id:'portas', label:'Portas interiores', sub:'Com aros e ferragens', unit:'porta', p:[220,420,850], q:s=>s.div+s.wcs+s.coz, w:s=>0.5},
+    {id:'climatizacao', label:'Climatização', sub:'AC ou bomba de calor', unit:'m²', p:[40,70,120], q:s=>s.area, w:s=>1},
+    {id:'isolamento', label:'Isolamento térmico', sub:'Paredes e cobertura', unit:'m²', p:[25,45,75], q:s=>s.area, w:s=>s.area/70}
+  ];
+  WORKS.forEach((w,i)=>w.color = COLORS[i]);
+  const PRESETS = {
+    total:['demolicao','pavimentos','pintura','pladur','eletricidade','canalizacao','cozinha','wc','janelas','portas'],
+    cozinha:['cozinha'], wc:['wc'], refresh:['pavimentos','pintura'],
+    energia:['janelas','isolamento','climatizacao']
+  };
+  const fmtUnit = (w,v) => w.unit==='m²' ? `${eur(v)}/m²` : `${eur(v)}/${w.unit}`;
+
+  // Construir opções
+  $('tipoChoices').innerHTML = TIPOS.map((t,i)=>`<div class="choice"><input type="radio" name="tipo" id="t_${t.id}" value="${t.id}" ${i===0?'checked':''}><label for="t_${t.id}">${icon(t.id)}<strong>${t.label}</strong><small>${t.sub}</small></label></div>`).join('');
+  $('nivelChoices').innerHTML = NIVEIS.map(n=>`<div class="choice"><input type="radio" name="nivel" id="n_${n.i}" value="${n.i}" ${n.i===1?'checked':''}><label for="n_${n.i}"><span class="dots">${[0,1,2].map(k=>`<i class="${k<=n.i?'on':''}"></i>`).join('')}</span><strong>${n.label}</strong><small>${n.sub}</small></label></div>`).join('');
+  $('regiao').innerHTML = REGIOES.map(([r,m],i)=>`<option value="${m}" ${i===0?'selected':''}>${r}</option>`).join('');
+  $('works').innerHTML = WORKS.map(w=>`<label class="work"><input type="checkbox" id="w_${w.id}" value="${w.id}" ${PRESETS.total.includes(w.id)?'checked':''}><strong>${w.label}</strong><small><span>${w.sub}</span><span class="num" id="pu_${w.id}"></span></small></label>`).join('');
+  $('priceTable').querySelector('tbody').innerHTML = WORKS.map(w=>`<tr><td><strong>${w.label}</strong><small>${w.sub}</small></td><td>${w.note || (w.unit==='m²'?'por m²':'por '+w.unit.replace('un.','unidade'))}</td>${w.p.map((v,i)=>`<td class="r num${i===1?' mid':''}">${eur(v)}</td>`).join('')}</tr>`).join('');
+
+  let janelasTouched = false;
+  $('janelas').addEventListener('input', ()=>{janelasTouched = true});
+  document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{
+    const [id, d] = b.dataset.step.split(':'); const el = $(id);
+    el.value = Math.min(+el.max, Math.max(+el.min, (+el.value||0) + +d));
+    if (id==='janelas') janelasTouched = true;
+    render();
+  }));
+
+  function state(){
+    return {
+      tipo: TIPOS.find(t=>t.id===document.querySelector('input[name=tipo]:checked').value),
+      nivel: +document.querySelector('input[name=nivel]:checked').value,
+      area: +$('areaRange').value, div: Math.max(0, +$('divisoes').value||0), wcs: Math.max(0, +$('wcs').value||0),
+      coz: Math.max(0, +$('cozinhas').value||0), janelas: Math.max(0, +$('janelas').value||0),
+      regiao: +$('regiao').value, idade: +$('idade').value,
+      works: WORKS.filter(w=>$('w_'+w.id).checked),
+      projeto: $('projeto').checked, gestao: $('gestao').checked, imprevistos: $('imprevistos').checked,
+      iva: +document.querySelector('input[name=iva]:checked').value
+    };
+  }
+
+  function calc(s){
+    const mult = s.regiao * s.idade * s.tipo.mult;
+    const lines = s.works.map(w=>({label:w.label, color:w.color, v: w.q(s) * w.p[s.nivel] * mult, weeks: w.w(s)})).filter(l=>l.v>0);
+    const obra = lines.reduce((a,l)=>a+l.v,0);
+    const extras = [];
+    if (s.projeto) extras.push({label:'Projeto e licenciamento', v: obra*0.06});
+    if (s.gestao) extras.push({label:'Gestão de obra', v: obra*0.05});
+    if (s.imprevistos) extras.push({label:'Imprevistos', v: obra*0.10});
+    const semIva = obra + extras.reduce((a,e)=>a+e.v,0);
+    const iva = semIva * s.iva;
+    const total = semIva + iva;
+    const weeks = Math.max(1, Math.round(lines.reduce((a,l)=>a+l.weeks,0) * 0.6 + (s.projeto?6:0)));
+    return {lines, extras, obra, semIva, iva, total, weeks, lo: round(total*0.88), hi: round(total*1.15)};
+  }
+
+  // Animação de contagem do intervalo
+  let shown = {lo:0, hi:0}, raf;
+  function animateRange(lo, hi){
+    cancelAnimationFrame(raf);
+    const from = {...shown}, t0 = performance.now(), dur = reduce ? 0 : 450;
+    const step = t => {
+      const k = dur ? Math.min(1, (t - t0)/dur) : 1, e = 1 - Math.pow(1-k, 3);
+      shown = {lo: from.lo + (lo-from.lo)*e, hi: from.hi + (hi-from.hi)*e};
+      $('rangeOut').innerHTML = `${eur(round(shown.lo,100))}<span class="sep">–</span>${eur(round(shown.hi,100))}`;
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  function render(){
+    const area = +$('areaRange').value;
+    $('areaOut').innerHTML = `${area} <small>m²</small>`;
+    if (!janelasTouched) $('janelas').value = Math.max(2, Math.round(area/12));
+    const s = state();
+    $('divLabel').textContent = s.tipo.div; $('cozLabel').textContent = s.tipo.coz;
+    WORKS.forEach(w=>{$('pu_'+w.id).textContent = fmtUnit(w, w.p[s.nivel])});
+    document.querySelectorAll('.chip[data-preset]').forEach(c=>{
+      const set = PRESETS[c.dataset.preset];
+      c.classList.toggle('on', s.works.length===set.length && s.works.every(w=>set.includes(w.id)));
+    });
+    const r = calc(s);
+    if (!r.lines.length){
+      cancelAnimationFrame(raf); shown = {lo:0,hi:0};
+      $('rangeOut').textContent = 'Escolha as obras';
+      ['m2Out','prazoOut','medOut'].forEach(id=>$(id).textContent='—');
+      $('stack').innerHTML = ''; $('nItems').textContent = '';
+      $('breakdown').innerHTML = '<p class="empty">Selecione pelo menos um trabalho no passo 3 para ver a estimativa.</p>';
+      $('totals').innerHTML = ''; $('compare').innerHTML = ''; return;
+    }
+    animateRange(r.lo, r.hi);
+    $('m2Out').textContent = eur(r.total/s.area);
+    $('prazoOut').textContent = `${r.weeks} ${r.weeks===1?'semana':'semanas'}`;
+    $('medOut').textContent = eur(round(r.total,100));
+    const lines = r.lines.sort((a,b)=>b.v-a.v);
+    const extrasTot = r.extras.reduce((a,e)=>a+e.v,0);
+    $('stack').innerHTML = lines.map(l=>`<i style="flex-grow:${l.v.toFixed(0)};background:${l.color}"></i>`).join('') + (extrasTot?`<i style="flex-grow:${extrasTot.toFixed(0)};background:rgba(255,255,255,.35)"></i>`:'');
+    $('nItems').textContent = `${lines.length} ${lines.length===1?'trabalho':'trabalhos'}`;
+    const pct = v => Math.round(v/r.semIva*100) + '%';
+    $('breakdown').innerHTML = lines.map(l=>`<div class="leg"><span class="sw" style="background:${l.color};box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)"></span><span>${l.label}</span><span class="pct">${pct(l.v)}</span><span class="v">${eur(round(l.v,50))}</span></div>`).join('')
+      + r.extras.map(e=>`<div class="leg extra"><span class="sw" style="background:var(--line)"></span><span>${e.label}</span><span class="pct">${pct(e.v)}</span><span class="v">${eur(round(e.v,50))}</span></div>`).join('');
+    $('totals').innerHTML = `<div><span>Subtotal sem IVA</span><span class="num">${eur(round(r.semIva,50))}</span></div>
+      <div><span>IVA (${Math.round(s.iva*100)}%)</span><span class="num">${eur(round(r.iva,50))}</span></div>
+      <div class="grand"><span>Valor médio com IVA</span><span class="num">${eur(round(r.total,50))}</span></div>`;
+    $('compare').innerHTML = NIVEIS.map(n=>{const t = calc({...s, nivel:n.i}).total;
+      return `<button type="button" data-nivel="${n.i}" class="${n.i===s.nivel?'on':''}"><small>${n.label}</small><strong>${eur(round(t,500))}</strong></button>`}).join('');
+  }
+
+  $('compare').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-nivel]'); if (!b) return;
+    $('n_'+b.dataset.nivel).checked = true; render();
+  });
+  document.querySelectorAll('.chip[data-preset]').forEach(b=>b.addEventListener('click',()=>{
+    const set = PRESETS[b.dataset.preset];
+    WORKS.forEach(w=>{$('w_'+w.id).checked = set.includes(w.id)});
+    render();
+  }));
+  $('simForm').addEventListener('input', render);
+  $('simForm').addEventListener('change', render);
+  $('simForm').addEventListener('submit', e=>e.preventDefault());
+
+  // Exemplos calculados com o mesmo motor
+  const ex = (tipo, area, div, wcs, coz, reg, idade, preset, nivel) => ({tipo, area, div, wcs, coz, reg, idade, preset, nivel});
+  const EXAMPLES = [
+    {t:'T2 em Lisboa', d:'Remodelação total · acabamentos médios', e: ex('apartamento',80,3,1,1,0,1.18,'total',1)},
+    {t:'Moradia no Centro', d:'Eficiência energética · 160 m²', e: ex('moradia',160,5,2,1,4,1.08,'energia',1)},
+    {t:'Escritório no Porto', d:'Pintura e chão · 120 m²', e: ex('escritorio',120,4,1,1,1,1,'refresh',0)}
+  ];
+  function exState(e){
+    return {tipo: TIPOS.find(t=>t.id===e.tipo), nivel:e.nivel, area:e.area, div:e.div, wcs:e.wcs, coz:e.coz,
+      janelas: Math.max(2, Math.round(e.area/12)), regiao: REGIOES[e.reg][1], idade:e.idade,
+      works: WORKS.filter(w=>PRESETS[e.preset].includes(w.id)), projeto:false, gestao:false, imprevistos:true, iva:0.23};
+  }
+  $('examples').innerHTML = EXAMPLES.map((x,i)=>{
+    const r = calc(exState(x.e)); const top = r.lines.sort((a,b)=>b.v-a.v).slice(0,3);
+    return `<article class="ex"><div class="ex-top"><div class="azulejo-bg" aria-hidden="true"></div><small>${x.d}</small><strong>${x.t}</strong></div>
+      <div class="ex-body"><div class="ex-price">${eur(r.lo)} – ${eur(r.hi)}<small>${r.weeks} semanas · ${eur(r.total/x.e.area)}/m²</small></div>
+      <ul>${top.map(l=>`<li><span>${l.label}</span><span class="num">${eur(round(l.v,100))}</span></li>`).join('')}</ul>
+      <button type="button" data-ex="${i}">Abrir no simulador →</button></div></article>`;
+  }).join('');
+  $('examples').addEventListener('click', e=>{
+    const b = e.target.closest('button[data-ex]'); if (!b) return;
+    const x = EXAMPLES[+b.dataset.ex].e;
+    $('t_'+x.tipo).checked = true; $('n_'+x.nivel).checked = true;
+    $('areaRange').value = x.area; $('divisoes').value = x.div; $('wcs').value = x.wcs; $('cozinhas').value = x.coz;
+    $('regiao').selectedIndex = x.reg; $('idade').value = String(x.idade);
+    janelasTouched = false; $('projeto').checked = false; $('gestao').checked = false; $('imprevistos').checked = true; $('iva23').checked = true;
+    WORKS.forEach(w=>{$('w_'+w.id).checked = PRESETS[x.preset].includes(w.id)});
+    render(); $('simulador').scrollIntoView({behavior: reduce?'auto':'smooth'});
+  });
+
+  // Etiqueta do hero: cozinha + WC num T2 de 80 m² em Lisboa
+  (function(){
+    const s = exState(ex('apartamento',80,3,1,1,0,1.08,'total',1));
+    s.works = WORKS.filter(w=>['cozinha','wc'].includes(w.id));
+    const r = calc(s); $('heroTag').textContent = `${eur(r.lo)} – ${eur(r.hi)}`;
+  })();
+
+  render();
+
+  $('leadForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    const err = [];
+    if (!$('nome').value.trim()) err.push('o nome');
+    if (!/^\S+@\S+\.\S+$/.test($('email').value)) err.push('um email válido');
+    if (!/^[29]\d{8}$/.test($('tel').value.replace(/\D/g,''))) err.push('um telefone português com 9 dígitos');
+    if (!/^\d{4}-?\d{3}$/.test($('cp').value.trim())) err.push('o código postal (ex.: 1000-001)');
+    if (!$('rgpd').checked) err.push('a autorização de partilha de dados');
+    if (err.length){ $('leadErr').textContent = 'Falta indicar ' + err.join(', ') + '.'; $('leadErr').hidden = false; return; }
+    $('leadErr').hidden = true;
+    const s = state(), r = calc(s);
+    // Ligar aqui ao backend (ex.: POST /api/leads) com { contacto, simulação }
+    $('leadForm').hidden = true;
+    $('leadDone').hidden = false;
+    $('leadDoneTxt').textContent = `Obrigado, ${$('nome').value.trim().split(' ')[0]}. A sua simulação de ${eur(round(r.total))} (${s.tipo.label.toLowerCase()}, ${s.area} m²) seria enviada a até 3 profissionais na zona ${$('cp').value.trim()}.`;
+  });
+})();
+</script>
+</body>
+</html>
