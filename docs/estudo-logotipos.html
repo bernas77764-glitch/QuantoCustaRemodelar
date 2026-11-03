@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logótipos QuantoCustaRemodelar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: folha de estudo; barra de paletas no topo, grelha de cartões (marca grande, versão clara/escura, favicon, cabeçalho). */
+:root{
+  --bg:#f5f4f1; --surface:#ffffff; --ink:#1c1e21; --muted:#5f6166; --line:#dedbd3; --chip:#eeece7;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  /* cores da marca (mudam com a paleta escolhida) */
+  --mk-dark:#22252a; --mk-accent:#eaa21a; --mk-light:#ffffff;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121315; --surface:#1b1d20; --ink:#ecebe7; --muted:#a5a6a8; --line:#33363b; --chip:#24272b; color-scheme:dark;}}
+:root[data-theme="dark"]{--bg:#121315; --surface:#1b1d20; --ink:#ecebe7; --muted:#a5a6a8; --line:#33363b; --chip:#24272b; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.1;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1240px;margin-inline:auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+header.page{padding-block:40px 24px;display:grid;gap:10px}
+.eyebrow{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+header.page h1{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;letter-spacing:-.02em}
+header.page p{color:var(--muted);max-width:66ch}
+
+.palettes{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;background:color-mix(in srgb, var(--bg) 92%, transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-block:1px solid var(--line)}
+.palettes .wrap{display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;padding-block:12px}
+.palettes strong{font-size:.85rem}
+.pal{display:flex;align-items:center;gap:8px;font:inherit;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px 6px 6px;cursor:pointer}
+.pal .sw{display:flex;border-radius:999px;overflow:hidden}
+.pal .sw i{width:16px;height:22px}
+.pal[aria-pressed="true"]{border-color:var(--ink)}
+.pal:focus-visible,.pick:focus-visible{outline:3px solid var(--mk-accent);outline-offset:2px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;padding-block:28px 60px}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:grid;min-width:0}
+.card.chosen{border-color:var(--mk-accent);box-shadow:0 0 0 2px var(--mk-accent)}
+.hero-mark{display:grid;place-items:center;padding:36px 20px;background:var(--mk-light);border-bottom:1px solid var(--line)}
+.hero-mark svg.lockup{width:100%;max-width:300px;height:auto}
+.variants{display:grid;grid-template-columns:1fr 1fr 64px;border-bottom:1px solid var(--line)}
+.variants > div{display:grid;place-items:center;padding:16px 10px;min-width:0}
+.variants .on-dark{background:var(--mk-dark)}
+.variants .on-accent{background:var(--mk-accent)}
+.variants .fav{background:var(--chip);gap:6px}
+.variants svg{width:56px;height:56px}
+.variants .fav svg{width:24px;height:24px}
+.variants .fav small{font-family:var(--f-mono);font-size:.62rem;color:var(--muted)}
+.mock{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--mk-dark);padding:10px 14px}
+.mock svg.lockup{height:26px;width:auto;max-width:72%}
+.mock span{font-size:.72rem;font-weight:700;background:var(--mk-accent);color:#1a1300;border-radius:999px;padding:5px 10px;white-space:nowrap}
+.info{padding:18px 20px 20px;display:grid;gap:8px;align-content:start}
+.info .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.info h3{font-size:1.2rem}
+.info .tag{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.info p{color:var(--muted);font-size:.92rem}
+.info ul{margin:0;padding-left:18px;font-size:.88rem;color:var(--muted);display:grid;gap:2px}
+.pick{justify-self:start;margin-top:6px;font:inherit;font-weight:700;font-size:.88rem;border:1.5px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer}
+.card.chosen .pick{background:var(--mk-accent);border-color:var(--mk-accent);color:#1a1300}
+.note{color:var(--muted);font-size:.85rem;padding-bottom:40px}
+</style>
+</head>
+<body>
+<header class="page wrap">
+  <span class="eyebrow">Estudo de marca · versão 1</span>
+  <h1>Seis caminhos para o logótipo do QuantoCustaRemodelar</h1>
+  <p>Cada proposta aparece em grande, sobre fundo escuro, sobre ocre, em tamanho de favicon (32 px) e no cabeçalho do site. Mude a paleta em cima para ver todas as propostas com outras cores. Marque as suas favoritas.</p>
+</header>
+
+<div class="palettes">
+  <div class="wrap" role="group" aria-label="Paleta de cores">
+    <strong>Paleta:</strong>
+    <button class="pal" aria-pressed="true" data-d="#22252a" data-a="#eaa21a"><span class="sw"><i style="background:#22252a"></i><i style="background:#eaa21a"></i></span>Grafite e ocre (atual)</button>
+    <button class="pal" aria-pressed="false" data-d="#1f4436" data-a="#e9b44c"><span class="sw"><i style="background:#1f4436"></i><i style="background:#e9b44c"></i></span>Verde-garrafa e mostarda</button>
+    <button class="pal" aria-pressed="false" data-d="#3a3f45" data-a="#f26b1d"><span class="sw"><i style="background:#3a3f45"></i><i style="background:#f26b1d"></i></span>Cimento e laranja obra</button>
+    <button class="pal" aria-pressed="false" data-d="#4a2c2a" data-a="#e7c9a0"><span class="sw"><i style="background:#4a2c2a"></i><i style="background:#e7c9a0"></i></span>Castanho e areia</button>
+  </div>
+</div>
+
+<!-- Símbolos: "currentColor" = cor principal, --mk-accent = destaque, --mk-hole = cor do fundo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="m-casa" viewBox="0 0 64 64">
+    <path d="M7 31L32 10l25 21" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M14 27v27h36V27" fill="none" stroke="currentColor" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M41.5 35.2a8 8 0 1 0 0 11.6" fill="none" stroke="var(--mk-accent)" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M26 39h11M26 43.5h11" stroke="var(--mk-accent)" stroke-width="3.5" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="m-etiqueta" viewBox="0 0 64 64">
+    <path d="M33 13C39 4 51 4 58 9" fill="none" stroke="var(--mk-accent)" stroke-width="2.6" stroke-linecap="round"/>
+    <g transform="rotate(-10 32 34)">
+      <path d="M32 9L53 26v30H11V26z" fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/>
+      <circle cx="32" cy="22" r="4" fill="var(--mk-hole)"/>
+      <text x="32" y="51" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="24" fill="var(--mk-accent)">?</text>
+    </g>
+  </symbol>
+  <symbol id="m-azulejo" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="8" fill="currentColor"/>
+    <path d="M4 20A16 16 0 0 0 20 4H12a8 8 0 0 0-8 8zM44 4a16 16 0 0 0 16 16v-8a8 8 0 0 0-8-8zM60 44a16 16 0 0 0-16 16h8a8 8 0 0 0 8-8zM20 60A16 16 0 0 0 4 44v8a8 8 0 0 0 8 8z" fill="var(--mk-hole)"/>
+    <path d="M20 37L32 26l12 11v10H20z" fill="var(--mk-accent)"/>
+    <rect x="29" y="40" width="6" height="7" fill="currentColor"/>
+  </symbol>
+  <symbol id="m-rolo" viewBox="0 0 64 64">
+    <rect x="8" y="7" width="40" height="15" rx="4" fill="var(--mk-accent)"/>
+    <path d="M48 14.5h6V28a4 4 0 0 1-4 4H36a4 4 0 0 0-4 4v8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="55" r="3.8" fill="currentColor"/>
+  </symbol>
+  <symbol id="m-fita" viewBox="0 0 64 64">
+    <rect x="30" y="38" width="31" height="11" rx="1.5" fill="var(--mk-accent)"/>
+    <path d="M36 38v4M42 38v6M48 38v4M54 38v6" stroke="currentColor" stroke-width="2"/>
+    <circle cx="27" cy="32" r="21" fill="currentColor"/>
+    <circle cx="27" cy="32" r="7" fill="var(--mk-accent)"/>
+    <circle cx="27" cy="32" r="2.5" fill="currentColor"/>
+  </symbol>
+  <symbol id="m-planta" viewBox="0 0 64 64">
+    <path d="M22 54H9V9h46v45H36" fill="none" stroke="currentColor" stroke-width="6.5" stroke-linejoin="miter"/>
+    <path d="M22 54V40" stroke="var(--mk-accent)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M22 40a14 14 0 0 1 14 14" fill="none" stroke="var(--mk-accent)" stroke-width="2" stroke-dasharray="3 3"/>
+    <path d="M42 42l17 17" stroke="currentColor" stroke-width="6.5" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<main class="wrap grid" id="grid"></main>
+<p class="wrap note">Os logótipos são esboços vetoriais para escolher uma direção. A versão final deve ser redesenhada por um designer, com verificação de registo da marca no INPI.</p>
+
+<script>
+(function(){
+  const OPTS = [
+    {id:'casa', name:'Casa com euro', tag:'A', desc:'A casa diz "remodelar", o euro diz "quanto custa". Leitura imediata, mesmo em pequeno.',
+     pros:['Mais fácil de perceber','Funciona bem como favicon'], word:'linha'},
+    {id:'etiqueta', name:'Etiqueta de preço', tag:'B', desc:'Uma etiqueta de loja com a forma de casa e um ponto de interrogação: a pergunta do nome no próprio símbolo.',
+     pros:['Conceito mais original','Fácil de animar (a etiqueta a balançar)'], word:'linha'},
+    {id:'azulejo', name:'Azulejo', tag:'C', desc:'Um azulejo português com uma casa ao centro. Liga a marca a Portugal e à reabilitação de casas antigas.',
+     pros:['Identidade portuguesa forte','Bom para padrões e redes sociais'], word:'linha'},
+    {id:'rolo', name:'Rolo de pintura', tag:'D', desc:'O cabo do rolo desenha um ponto de interrogação. Obra e pergunta no mesmo gesto.',
+     pros:['Divertido e memorável','Ícone de obra reconhecível'], word:'linha'},
+    {id:'fita', name:'Fita métrica', tag:'E', desc:'Medir antes de gastar. Sugere rigor e cálculo, que é o que o simulador faz.',
+     pros:['Transmite precisão','Combina com o simulador por m²'], word:'empilhado'},
+    {id:'planta', name:'Planta em Q', tag:'F', desc:'O "Q" de QuantoCusta desenhado como uma planta de arquitetura, com porta e cauda.',
+     pros:['Monograma forte e sóbrio','Mais "premium", agrada a profissionais'], word:'linha'}
+  ];
+
+  const mark = (id, color, hole, size, accent) => `<svg viewBox="0 0 64 64" width="${size||56}" height="${size||56}" style="color:${color};--mk-hole:${hole}${accent?';--mk-accent:'+accent:''}" aria-hidden="true"><use href="#m-${id}"/></svg>`;
+  function lockup(o, ink, accent, hole){
+    if (o.word === 'empilhado'){
+      return `<svg class="lockup" viewBox="0 0 300 80" role="img" aria-label="QuantoCustaRemodelar"><g style="color:${ink};--mk-hole:${hole}"><use href="#m-${o.id}" x="0" y="8" width="64" height="64"/></g>
+        <text x="76" y="36" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="27" fill="${ink}" letter-spacing="-.5">QuantoCusta</text>
+        <text x="76" y="66" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="27" fill="${accent}" letter-spacing="-.5">Remodelar</text></svg>`;
+    }
+    return `<svg class="lockup" viewBox="0 0 384 64" role="img" aria-label="QuantoCustaRemodelar"><g style="color:${ink};--mk-hole:${hole}"><use href="#m-${o.id}" x="0" y="4" width="56" height="56"/></g>
+      <text x="66" y="41" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="27" letter-spacing="-.5"><tspan fill="${ink}">QuantoCusta</tspan><tspan fill="${accent}">Remodelar</tspan></text></svg>`;
+  }
+
+  let chosen = new Set();
+  try { chosen = new Set(JSON.parse(localStorage.getItem('qcr-logos')||'[]')); } catch(e){}
+
+  function render(){
+    const cs = getComputedStyle(document.documentElement);
+    const D = cs.getPropertyValue('--mk-dark').trim(), A = cs.getPropertyValue('--mk-accent').trim(), L = '#ffffff';
+    document.getElementById('grid').innerHTML = OPTS.map(o=>`
+      <article class="card${chosen.has(o.id)?' chosen':''}">
+        <div class="hero-mark">${lockup(o, D, A, L)}</div>
+        <div class="variants">
+          <div class="on-dark">${mark(o.id, '#ffffff', D)}</div>
+          <div class="on-accent">${mark(o.id, D, A, 56, '#ffffff')}</div>
+          <div class="fav">${mark(o.id, D, '#ffffff', 24)}<small>32px</small></div>
+        </div>
+        <div class="mock">${lockup(o, '#ffffff', A, D)}<span>Simular grátis</span></div>
+        <div class="info">
+          <div class="top"><h3>${o.name}</h3><span class="tag">Opção ${o.tag}</span></div>
+          <p>${o.desc}</p>
+          <ul>${o.pros.map(p=>`<li>${p}</li>`).join('')}</ul>
+          <button class="pick" type="button" data-id="${o.id}" aria-pressed="${chosen.has(o.id)}">${chosen.has(o.id)?'★ Favorita':'☆ Marcar como favorita'}</button>
+        </div>
+      </article>`).join('');
+  }
+
+  document.getElementById('grid').addEventListener('click', e=>{
+    const b = e.target.closest('.pick'); if (!b) return;
+    chosen.has(b.dataset.id) ? chosen.delete(b.dataset.id) : chosen.add(b.dataset.id);
+    try { localStorage.setItem('qcr-logos', JSON.stringify([...chosen])); } catch(e){}
+    render();
+  });
+  document.querySelectorAll('.pal').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.pal').forEach(x=>x.setAttribute('aria-pressed', x===b));
+    document.documentElement.style.setProperty('--mk-dark', b.dataset.d);
+    document.documentElement.style.setProperty('--mk-accent', b.dataset.a);
+    render();
+  }));
+  render();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+})();
+</script>
+</body>
+</html>
